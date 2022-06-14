@@ -4,7 +4,7 @@ function Part({ part, exercise}) {
   return (
     <div>
         <p>
-           {part} {exercise}
+           {part}: {exercise}
       </p>
     </div>
   )

@@ -1,29 +1,40 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import Weather from './Weather'
 
-const Country = ({ country, toggle, show }) => {
+const Country = ({countryToDisplay}) => {
+
+    const [ weather, setWeather ] = useState({})
+    const api_key = process.env.REACT_APP_API_KEY
+    const lat = countryToDisplay.capitalInfo.latlng[0]
+    const lon = countryToDisplay.capitalInfo.latlng[1]
+    const apiCall = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${api_key}`
+
     
-  return (
-    <div key={country.id}>
-        <h4>{country.name.common} <button onClick={toggle}>Show</button></h4> 
+    useEffect(() => {
+        axios
+        .get(apiCall)
+        .then(response => {setWeather(response.data)
+        })
+    }, [apiCall]) 
 
-    {show && <div>
-            <h4>Capital: {country.capital}</h4>
-            <h4>Area: {country.area}</h4>
+    const countryLanguages = Object.values(countryToDisplay.languages)
 
-            <h3>languages:</h3>
-                {/* {country.languages.map(lang => (
-
-                    <ul>
-                        <li>{lang}</li>
-                    </ul>
-                ))} */}
-                {country.language}
-            <img src={country.flags.svg} />
-
-            <h3>Weather in Capital</h3>
-        </div>}
-    </div>
-  )
+    const displayWeather = Object.keys(weather).length===0 
+    ? '' 
+    : <Weather countryInfo={countryToDisplay} weatherReport={weather} />
+    
+    return (
+        <>
+        <h2>{countryToDisplay.name.common}</h2>
+        <p>capital {countryToDisplay.capital[0]}</p>
+        <p>area {countryToDisplay.area}</p>
+        <h4>Languages</h4>
+        <ul label='Languages'>{countryLanguages.map(language => <li key={language}>{language}</li>)}</ul>
+        <img src={countryToDisplay.flags.png} alt="weather" />
+        {displayWeather}
+        </>
+    )
 }
 
 export default Country

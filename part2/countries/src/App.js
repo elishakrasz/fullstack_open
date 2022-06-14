@@ -1,57 +1,51 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import Search from "./components/Search";
-import Country from "./components/Country";
+import axios from 'axios'
+import { useState, useEffect } from 'react'
+import CountryList from './components/CountryList'
 
-function App() {
-  const [countries, setCountries] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [show, setShow] = useState(false);
+const App = () => {
 
-  const countryList = countries.filter((country) => {
-    return country.name.common
-      ?.toLowerCase()
-      .includes(searchTerm?.toLowerCase());
-  });
+  const [ countries, setCountries ] = useState([])
+  const [ filter, setFilter ] = useState('')
+  const [ showOne, setShowOne ] = useState(false)
+  const [ oneCountry, setOneCountry ] = useState({})
 
-  const toggle = () => {
-    setShow(!show)
+  useEffect(() => {
+    axios
+      .get('https://restcountries.com/v3.1/all')
+      .then(response => {
+        const countries = response.data
+        const countriesKey = countries.map(x => ({...x, key: x.name.common}))
+        setCountries(countriesKey)
+      })
+  }, []) 
+
+  const handleChange = (e) => {
+    setFilter(e.target.value)
+    setShowOne(false)
+    setOneCountry({})
   }
-  const getCountries = () => {
-    console.log("effect");
-    axios.get("https://restcountries.com/v3.1/all").then((response) => {
-      console.log("promise fulfilled");
-      setCountries(response.data);
-      console.log(response.data);
-    });
-  };
-
-  useEffect(getCountries, []);
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  
+  const countriesToShow = 
+    filter.length>=1 
+    ? countries.filter(country => country.name.common.toLowerCase().includes(filter.toLowerCase())) 
+    : countries
 
   return (
     <div>
-      <Search countries={countries} handleSearch={handleSearch} />
-      <div>
-        <h3>Countries</h3>
-
-        {countryList.length > 10 && (
-          <h3>Please add more characters to your search</h3>
-        )}
-        {countryList.length < 10 &&
-          countryList.map((country) => (
-            <Country country={country} toggle={toggle} show={show} />
-            // <div>
-            //   <h4 key={country.id}>
-            //     {country.name.common}{" "}
-            //     <button onClick={() => setShow(!show)}>Show</button>
-            //   </h4>{" "}
-            // </div>
-          ))}
-      </div>
+  
+      <form>
+        find countries 
+        <input value={filter} onChange={handleChange}/>
+      </form>
+      
+      {filter.length>=1 ? <CountryList 
+      countryDisplay={countriesToShow} 
+      showOneCountry={showOne}
+      setShowOneCountry={setShowOne}
+      singleCountry={oneCountry}
+      setSingleCountry={setOneCountry}
+      /> : ''}
+      
     </div>
   );
 }
